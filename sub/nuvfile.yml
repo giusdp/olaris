@@ -16,5 +16,13 @@
 # under the License.
 #
 version: '3'
+
 tasks:
-  default: ht 2>&1 | wc -l
+  
+  multi:
+    desc: multicmd
+
+  testcmd:
+    desc: test nuv commands
+    cmds:
+    - ht 2>&1 | wc -l

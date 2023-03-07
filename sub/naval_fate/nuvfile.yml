@@ -1,0 +1,7 @@
+version: '3'
+
+tasks:
+
+  ship: echo ship
+
+  mine: echo mine

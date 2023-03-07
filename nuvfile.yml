@@ -18,4 +18,11 @@
 
 version: '3'
 tasks:
-  default: ht 2>&1 | wc -l
+
+  sub:
+    desc: sub command
+
+  testcmd:
+    desc: test nuv commands
+    cmds:
+    - ht 2>&1 | wc -l
