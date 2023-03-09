@@ -1,5 +1,0 @@
-Usage:
-  multi ship new <name>...
-  multi ship <name> move <x> <y>
-  multi ship shoot <x> <y>
-  multi mine (set|remove) <x> <y>

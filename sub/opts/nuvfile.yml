@@ -18,5 +18,20 @@
 version: '3'
 
 tasks:
-  ship: echo ship
-  mine: echo mine
+  args: |-
+    echo "args:"
+    names={{._name_}}
+    for i in "${names[@]}"
+    do echo name: $i
+    done
+    if {{._c}}
+    then echo "-c: yes"
+    else echo "-c: no"
+    fi
+
+  arg1: |-
+    echo "arg1" name={{._name_}} arg2 x={{._x_}} y={{._y_}}"
+  
+  arg3: echo "arg3"
+
+  boh: echo "boh!"

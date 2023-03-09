@@ -17,12 +17,11 @@
 #
 version: '3'
 
-tasks:
-  
-  multi:
-    desc: multicmd
+tasks:  
+  opts:
+    desc: opts test
 
-  testcmd:
-    desc: test nuv commands
-    cmds:
-    - ht 2>&1 | wc -l
+  simple:
+   desc: simple
+   cmds:
+   - echo simple
