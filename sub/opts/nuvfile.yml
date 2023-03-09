@@ -34,4 +34,4 @@ tasks:
   
   arg3: echo "arg3"
 
-  boh: echo "boh!"
+  hello: echo "hello!"
