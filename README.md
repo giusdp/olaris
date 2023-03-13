@@ -17,5 +17,10 @@
   ~ under the License.
   ~
 -->
-# olaris
-nuv's olaris, aka tasks for nuv
+# Welcome to olaris
+
+What is this? Is nuv's olaris, aka tasks for nuv.
+
+In other words, the scripts executed by `nuv`.
+
+

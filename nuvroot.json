@@ -16,6 +16,5 @@
 # under the License.
 
 {
-    "kubectl":  "https://dl.k8s.io/release/v1.26.0/bin/{{OS}}/{{ARCH}}/kubectl",
-    "kind": "https://kind.sigs.k8s.io/dl/v0.17.0/kind-{{OS}}-{{ARCH}}"
+    "version": "0.3.0"
 }
