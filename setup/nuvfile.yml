@@ -60,48 +60,54 @@ tasks:
     - nuv setup kubernetes create
     - nuv setup nuvolaris login
 
-  configure:
+  enable:
     silent: true
     cmds:
     - |
-      if test -n "{{._apihost_}}"
-      if {{.__all}}
-      then cat <<EOF >_env
-      ENABLE_REDIS=true
-      ENABLE_MONGO=true
-      ENABLE_MINIO=true
-      ENABLE_CRON=true
-      ENABLE_STATIC=true      
-      EOF
-      else cat <<EOF >_env
-      ENABLE_REDIS={{.__redis}}
-      ENABLE_MONGO={{.__mongo}}
-      ENABLE_MINIO={{.__minio}}
-      ENABLE_CRON={{.__cron}}
-      ENABLE_STATIC={{.__static}}
-      EOF
+      if {{.__redis}} || {{.__all}}
+      then config.sh ENABLE_REDIS=true
       fi
+      if {{.__mongo}} || {{.__all}}
+      then config.sh ENABLE_MONGO=true
+      fi
+      if {{.__minio}} || {{.__all}}
+      then config.sh ENABLE_MINIO=true
+      fi
+      if {{.__cron}} || {{.__all}}
+      then config.sh ENABLE_CRON=true
+      fi
+      if {{.__cron}} || {{.__all}}
+      then config.sh ENABLE_STATIC=true
+      fi
+      config.sh
 
-  apihost:
+  disable:
     silent: true
     cmds:
     - |
-      if test -n "{{.APIHOST}}"
-      then echo APIHOST={{._apihost_}} >_apihost_
-      else rm nuvolaris/_apihost_
+      if {{.__redis}} || {{.__all}}
+      then config.sh ENABLE_REDIS=false
       fi
+      if {{.__mongo}} || {{.__all}}
+      then config.sh ENABLE_MONGO=false
+      fi
+      if {{.__minio}} || {{.__all}}
+      then config.sh ENABLE_MINIO=false
+      fi
+      if {{.__cron}} || {{.__all}}
+      then config.sh ENABLE_CRON=false
+      fi
+      if {{.__cron}} || {{.__all}}
+      then config.sh ENABLE_STATIC=false
+      fi
+      config.sh
 
   status:
     silent: true
     cmds:
     - |
       echo "*** Configuration ***"
-      if test -e _env 
-      then cat _env  
-      fi
-      if test -e _apihost_ 
-      then cat _apihost_
-      fi
+      config.sh
 
   delete:
     silent: false

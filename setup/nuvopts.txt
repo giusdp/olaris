@@ -1,30 +1,31 @@
 Subcommand: nuv setup 
 
 Usage:
-  setup configure [<apihost>] [--all] [--redis] [--mongo] [--minio] [--cron] [--static]
+  setup (enable|disable) [--all] [--redis] [--mongo] [--minio] [--cron] [--static]
   setup [local|--devcluster]
   setup cluster [<context>]
   setup server <server> [<user>]
   setup status
 
 Commands:
-  setup configure     configure Nuvolaris services to enable and the apihost name
+  setup enable        enable Nuvolaris services to install
+  setup disable       disable Nuvolaris services to install
   setup cluster       deploy Nuvolaris in the Kubernetes cluster using the <context>, default the current
   setup local         create a local Kubernetes in docker and deploy Nuvolaris
                       you need docker desktop installed in your system
   setup server        create a Kubernetes in server <server> and deploy Nuvolaris
                       the server must be accessible with ssh using the <user>, default root
-  setup delete        remove Nuvolaris from the cluster, then the kubernetes either --local or --server
   nuvolaris           nuvolaris subcommands
   kubernetes          kubernetes subcommands
   docker              docker subcommands
   k3s                 k3s subcommands
 
 Options:
-  --all         enable all services
-  --redis       enable redis
-  --mongo       enable mongo
-  --minio       enable minio
-  --cron        enable cron
-  --static      enable static
+  --all         select all services
+  --redis       select redis
+  --mongo       select mongo
+  --minio       select minio
+  --cron        select cron
+  --static      select static
+  --uninstall   execute an uninstall 
   --devcluster  (legacy) same as local
