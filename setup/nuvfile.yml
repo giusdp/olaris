@@ -23,63 +23,47 @@ tasks:
     cmds:
     - |
       if {{.__devcluster}} 
-      then nuv setup local
+      then nuv setup devcluster
       fi
-
-  local:
+ 
+  configure:
     silent: true
     cmds:
-    - nuv setup docker create
-    - nuv setup kubernetes create
-    - nuv setup nuvolaris login
-
-  use-context:
-    silent: true
-    cmds: 
     - |
-      if test -n "{{._context_}}"
-      then  if kubectl config use-context "{{._context_}}"
-            then kubectl config get-contexts
-            else false
-            fi
-      fi
-      kubectl config get-contexts
-
-  cluster:
+      config CONFIG_CONTACT="{{._contact_}}"
+      config CONFIG_APIHOST="${CONFIG_APIHOST:-auto}"
+      config CONFIG_APIHOST=${CONFIG_APIHOST:-auto}
+      config ENABLE_REDIS=${ENABLE_REDIS:-false}
+      config ENABLE_MONGO=${ENABLE_MONGO:-false}
+      config ENABLE_MINIO=${ENABLE_MINIO:-false}
+      config ENABLE_CRON=${ENABLE_MINIO:-false}
+      config ENABLE_STATIC=${ENABLE_STATIC:-false}
+      
+  apihost:
     silent: true
     cmds:
-    - task: use-context
-    - nuv setup kubernetes create
-    - nuv setup nuvolaris login
-
-  server:
-    silent: true
-    cmds:
-    - nuv setup apihost {{._server_}}
-    - nuv setup k3s create SERVER="{{._server_}}" USERNAME="{{._user_}}"
-    - nuv setup kubernetes create
-    - nuv setup nuvolaris login
+    - config CONFIG_APIHOST="{{._apihost_}}"
 
   enable:
     silent: true
     cmds:
     - |
       if {{.__redis}} || {{.__all}}
-      then config.sh ENABLE_REDIS=true
+      then config ENABLE_REDIS=true
       fi
       if {{.__mongo}} || {{.__all}}
-      then config.sh ENABLE_MONGO=true
+      then config ENABLE_MONGO=true
       fi
       if {{.__minio}} || {{.__all}}
-      then config.sh ENABLE_MINIO=true
+      then config ENABLE_MINIO=true
       fi
       if {{.__cron}} || {{.__all}}
-      then config.sh ENABLE_CRON=true
+      then config ENABLE_CRON=true
       fi
       if {{.__cron}} || {{.__all}}
-      then config.sh ENABLE_STATIC=true
+      then config ENABLE_STATIC=true
       fi
-      config.sh
+    - task: status
 
   disable:
     silent: true
@@ -100,14 +84,62 @@ tasks:
       if {{.__cron}} || {{.__all}}
       then config.sh ENABLE_STATIC=false
       fi
-      config.sh
+    - task: status
 
   status:
     silent: true
     cmds:
     - |
       echo "*** Configuration ***"
-      config.sh
+      echo "     ApiHost: $CONFIG_APIHOST"
+      echo "     Contact: $CONFIG_CONTACT"
+      echo "       Redis: $ENABLE_REDIS"
+      echo "     MongoDB: $ENABLE_MONGO"
+      echo "       Minio: $ENABLE_MINIO"
+      echo "        Cron: $ENABLE_CRON"
+      echo "     Statics: $ENABLE_STATIC"
+    - |
+      if test -z "$CONFIG_CONTACT"
+      then echo 'Please use "nuv setup configure" to configure contact and apihost'
+           false
+      fi
+
+
+  use-context:
+    silent: true
+    cmds: 
+    - |
+      if test -n "{{._context_}}"
+      then  if kubectl config use-context "{{._context_}}"
+            then kubectl config get-contexts
+            else false
+            fi
+      fi
+      kubectl config get-contexts
+
+  devcluster:
+    silent: true
+    cmds:
+    - |
+        nuv configure "no-reply@example.com"
+        nuv setup docker create
+        nuv setup kubernetes create
+
+  cluster:
+    silent: true
+    cmds:
+    - task: use-context
+    - nuv setup kubernetes create
+    - nuv setup nuvolaris login
+
+  server:
+    silent: true
+    cmds:
+    - nuv setup apihost {{._server_}}
+    - nuv setup k3s create SERVER="{{._server_}}" USERNAME="{{._user_}}"
+    - nuv setup kubernetes create
+    - nuv setup nuvolaris login
+
 
   delete:
     silent: false
@@ -120,4 +152,5 @@ tasks:
       then nuv setup k3s delete
       else nuv setup kubernetes delete
       fi
+
 
