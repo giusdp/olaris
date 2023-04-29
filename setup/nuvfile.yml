@@ -23,27 +23,34 @@ tasks:
     cmds:
     - |
       if {{.__devcluster}} 
-      then nuv setup devcluster
+      then echo nuv setup devcluster
+      elif test -n "{{.__context}}"
+      then 
+          if test -n "{{.__apihost}}"
+          then echo nuv setup configure "{{.__apihost}}"
+          fi
+          echo nuv setup cluster {{.__context}}
       fi
- 
+
   configure:
     silent: true
     cmds:
     - |
-      config CONFIG_CONTACT="{{._contact_}}"
-      config CONFIG_APIHOST="${CONFIG_APIHOST:-auto}"
-      config CONFIG_APIHOST=${CONFIG_APIHOST:-auto}
+      if test -n "{{._apihost_}}"
+      then echo config CONFIG_APIHOST="{{._apihost_}}"
+      else echo config CONFIG_APIHOST="auto"
+      fi
+      if test -n "{{._tls_}}"
+      then echo config ENABLE_TLS=true CONFIG_EMAIL="{{._email_}}"
+      else
+      fi
+
       config ENABLE_REDIS=${ENABLE_REDIS:-false}
       config ENABLE_MONGO=${ENABLE_MONGO:-false}
       config ENABLE_MINIO=${ENABLE_MINIO:-false}
       config ENABLE_CRON=${ENABLE_MINIO:-false}
       config ENABLE_STATIC=${ENABLE_STATIC:-false}
-      
-  apihost:
-    silent: true
-    cmds:
-    - config CONFIG_APIHOST="{{._apihost_}}"
-
+  
   enable:
     silent: true
     cmds:
@@ -60,7 +67,7 @@ tasks:
       if {{.__cron}} || {{.__all}}
       then config ENABLE_CRON=true
       fi
-      if {{.__cron}} || {{.__all}}
+      if {{.__static}} || {{.__all}}
       then config ENABLE_STATIC=true
       fi
     - task: status
@@ -70,41 +77,36 @@ tasks:
     cmds:
     - |
       if {{.__redis}} || {{.__all}}
-      then config.sh ENABLE_REDIS=false
+      then config ENABLE_REDIS=false
       fi
       if {{.__mongo}} || {{.__all}}
-      then config.sh ENABLE_MONGO=false
+      then config ENABLE_MONGO=false
       fi
       if {{.__minio}} || {{.__all}}
-      then config.sh ENABLE_MINIO=false
+      then config ENABLE_MINIO=false
       fi
       if {{.__cron}} || {{.__all}}
-      then config.sh ENABLE_CRON=false
+      then config ENABLE_CRON=false
       fi
       if {{.__cron}} || {{.__all}}
-      then config.sh ENABLE_STATIC=false
+      then config ENABLE_STATIC=false
       fi
     - task: status
 
   status:
     silent: true
     cmds:
-    - |
+    - | 
       echo "*** Configuration ***"
-      echo "     ApiHost: $CONFIG_APIHOST"
-      echo "     Contact: $CONFIG_CONTACT"
-      echo "       Redis: $ENABLE_REDIS"
-      echo "     MongoDB: $ENABLE_MONGO"
-      echo "       Minio: $ENABLE_MINIO"
-      echo "        Cron: $ENABLE_CRON"
-      echo "     Statics: $ENABLE_STATIC"
-    - |
-      if test -z "$CONFIG_CONTACT"
-      then echo 'Please use "nuv setup configure" to configure contact and apihost'
-           false
-      fi
-
-
+      echo "   ApiHost: $CONFIG_APIHOST"
+      echo "     Email: $CONFIG_EMAIL"
+      echo "       Tls: $ENABLE_TLS"
+      echo "     Redis: $ENABLE_REDIS"
+      echo "     Mongo: $ENABLE_MONGO"
+      echo "     Minio: $ENABLE_MINIO"
+      echo "      Cron: $ENABLE_CRON"
+      echo "    Static: $ENABLE_STATIC"
+ 
   use-context:
     silent: true
     cmds: 

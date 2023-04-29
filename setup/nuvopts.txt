@@ -2,13 +2,13 @@ Section:
   nuv setup 
 
 Usage:
-  setup configure <contact>
-  setup apihost <apihost>
+  setup configure [<apihost>] [--tls=<email>]
   setup (enable|disable) [--all] [--redis] [--mongo] [--minio] [--cron] [--static]
-  setup (devcluster|--devcluster) [--uninstall]
-  setup cluster [<context>]  [--uninstall]
+  setup devcluster [--uninstall]
+  setup cluster [<context>|--local]  [--uninstall]
   setup server <server> [<user>] [--uninstall]
   setup status
+  setup (--devcluster|--context=<context> [--apihost=<apihost>]) 
 
 Commands:
   setup configure     configure Nuvolaris contact

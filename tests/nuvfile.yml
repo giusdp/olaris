@@ -24,7 +24,7 @@ tasks:
 
   show: config.sh
 
-  set-a: config.sh A={{.A}}
+  set-a: config A={{.A}}
 
   get-a: echo $A
 
