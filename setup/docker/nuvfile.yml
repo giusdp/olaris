@@ -17,72 +17,19 @@
 version: '3'
 
 vars:
-  DRY: false
-  SILENT: true
+  # set this to enable DRY run and DMP of info
+  D: ""
+  DRY: '{{if eq .D ""}}{{else}}echo{{end}}'
+  DUMP: '{{if eq .D ""}}true{{else}}cat{{end}}'
   INGRESS: "https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml"
-
-
-dotenv:
-- ../../env.src
 
 env:
   DATADIR:
-    sh: echo $HOME/.nuv/kind
-  SILENT: true
+    sh: echo ~/.nuv/kind
+  KUBECONFIG: 
+    sh: echo ~/.nuv/kubeconfig
 
 tasks:
-  version:
-    cmds:
-    - kind version
-    
-  cluster: 
-    silent: true
-    cmds:
-    - mkdir -p $DATADIR
-    - envsubst -i kind.yaml -o _kind.yaml
-    - |
-      if {{.DRY}}
-      then cat _kind.yaml
-      else kind create cluster --wait=1m --name=nuvolaris --config=_kind.yaml
-      fi
-
-  ingress: 
-  #- kubectl apply -f "{{.INGRESS}}"
-  - kubectl apply -f ingress-deploy.yaml
-
-  preload:
-  - docker pull $OPERATOR_IMAGE:$OPERATOR_TAG
-  - kind load docker-image -n nuvolaris $OPERATOR_IMAGE:$OPERATOR_TAG 
-  - docker pull $CONTROLLER_IMAGE:$CONTROLLER_TAG
-  - kind load docker-image -n nuvolaris $CONTROLLER_IMAGE:$CONTROLLER_TAG
-  - docker pull $COUCHDB_IMAGE:$COUCHDB_TAG
-  - kind load docker-image -n nuvolaris $COUCHDB_IMAGE:$COUCHDB_TAG
-  - docker pull $NODEJS_IMAGE:$NODEJS_TAG
-  - kind load docker-image -n nuvolaris $NODEJS_IMAGE:$NODEJS_TAG
-  - docker pull $PYTHON_IMAGE:$PYTHON_TAG
-  - kind load docker-image -n nuvolaris $PYTHON_IMAGE:$PYTHON_TAG
-  
-  create:
-    silent: true
-    desc: create the Nuvolaris cluster in Docker
-    cmds:
-    - task: cluster
-    - task: ingress
-    - task: use
-    status:
-    - kind get clusters | grep nuvolaris
-
-  delete:
-    silent: true
-    desc: destroy the Nuvolaris cluster in Docker
-    cmds:
-    - kind delete clusters nuvolaris
-
-  use:
-    silent: true
-    desc: use the Nuvolaris cluster in Docker
-    cmds:
-    - kind export kubeconfig --name=nuvolaris
 
   status:
     silent: true
@@ -93,3 +40,56 @@ tasks:
       then echo Cluster Nuvolaris up and running
       else echo Cluster Nuvolaris not found
       fi
+
+  info:
+    silent: true
+    desc: info the Nuvolaris cluster in Docker
+    cmds:
+    - |
+      echo "*** KUBECONFIG ***"
+      echo $KUBECONFIG
+      echo "*** Kind Version ***"
+      kind version
+      echo "*** Kind Clusters ***"
+      kind get clusters 
+      if test -e $KUBECONFIG
+      then  echo "*** Nodes ***"
+            kubectl get nodes
+      fi
+
+  cluster:
+    silent: true
+    cmds:
+    - mkdir -p $DATADIR
+    - envsubst -i kind.yaml -o _kind.yaml
+    - '{{.DUMP}} _kind.yaml'
+    - '{{.DRY}} kind create cluster --wait=1m --name=nuvolaris --config=_kind.yaml --kubeconfig="$KUBECONFIG"'
+
+  ingress:
+    silent: true
+    cmds:
+    - '{{.DRY}} kubectl apply -f ingress-deploy.yaml'
+
+  create:
+    silent: true
+    desc: create the Nuvolaris cluster in Docker
+    cmds:
+    - task: cluster
+    - task: ingress
+    status:
+    - kind get clusters | grep nuvolaris
+
+  delete:
+    silent: true
+    desc: destroy the Nuvolaris cluster in Docker
+    cmds:
+    - "{{.RUN}} kind delete clusters nuvolaris"
+    - rm "$KUBECONFIG"
+
+
+  debug:
+    #- echo DRY={{.DRY}} RUN={{.RUN}} KUBECONFIG=$KUBECONFIG
+    - |
+      js - <<EOF
+      console.log(Date.now())
+      EOF

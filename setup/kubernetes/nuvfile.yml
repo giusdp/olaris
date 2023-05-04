@@ -21,12 +21,14 @@ vars:
   MAX: 100
   TIMEOUT: 5
 
+env:
+  KUBECONFIG: 
+    sh: -|
+         if test -e ~/.nuv/kubeconfig
+         then echo  ~/.nuv/kubeconfig
+         else echo ~/.kube/config
+         fi
 
-dotenv:
-- ../../env.src
-- ../_env
-- ../_apihost
-- ../_kubenv
 
 tasks:
 
