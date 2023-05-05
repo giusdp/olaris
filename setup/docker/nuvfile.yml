@@ -17,10 +17,10 @@
 version: '3'
 
 vars:
-  # set this to enable DRY run and DMP of info
+  # set this to enable RUN run and DMP of info
   D: ""
-  DRY: '{{if eq .D ""}}{{else}}echo{{end}}'
-  DUMP: '{{if eq .D ""}}true{{else}}cat{{end}}'
+  RUN: '{{if eq .D ""}}{{else}}echo{{end}}'
+  CAT: '{{if eq .D ""}}true{{else}}cat{{end}}'
   INGRESS: "https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml"
 
 env:
@@ -46,14 +46,14 @@ tasks:
     desc: info the Nuvolaris cluster in Docker
     cmds:
     - |
-      echo "*** KUBECONFIG ***"
+      echo "=== KUBECONFIG"
       echo $KUBECONFIG
-      echo "*** Kind Version ***"
+      echo "=== Kind Version"
       kind version
-      echo "*** Kind Clusters ***"
+      echo "=== Kind Clusters"
       kind get clusters 
       if test -e $KUBECONFIG
-      then  echo "*** Nodes ***"
+      then  echo "=== Nodes"
             kubectl get nodes
       fi
 
@@ -62,13 +62,13 @@ tasks:
     cmds:
     - mkdir -p $DATADIR
     - envsubst -i kind.yaml -o _kind.yaml
-    - '{{.DUMP}} _kind.yaml'
-    - '{{.DRY}} kind create cluster --wait=1m --name=nuvolaris --config=_kind.yaml --kubeconfig="$KUBECONFIG"'
+    - '{{.CAT}} _kind.yaml'
+    - '{{.RUN}} kind create cluster --wait=1m --name=nuvolaris --config=_kind.yaml --kubeconfig="$KUBECONFIG"'
 
   ingress:
     silent: true
     cmds:
-    - '{{.DRY}} kubectl apply -f ingress-deploy.yaml'
+    - '{{.RUN}} kubectl apply -f ingress-deploy.yaml'
 
   create:
     silent: true
@@ -85,11 +85,3 @@ tasks:
     cmds:
     - "{{.RUN}} kind delete clusters nuvolaris"
     - rm "$KUBECONFIG"
-
-
-  debug:
-    #- echo DRY={{.DRY}} RUN={{.RUN}} KUBECONFIG=$KUBECONFIG
-    - |
-      js - <<EOF
-      console.log(Date.now())
-      EOF

@@ -24,7 +24,7 @@ spec:
   serviceAccount: nuvolaris-operator
   containers:
     - name: nuvolaris-operator
-      image: $OPERATOR_IMAGE:$OPERATOR_TAG
+      image: ${IMAGES_OPERATOR}
       imagePullPolicy: Always
       command: ["./run.sh"]
       args: ["--verbose"]
