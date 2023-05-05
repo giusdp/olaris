@@ -25,9 +25,9 @@ vars:
 
 env:
   DATADIR:
-    sh: echo ~/.nuv/kind
+    sh: echo $NUV_TMP/kind
   KUBECONFIG: 
-    sh: echo ~/.nuv/kubeconfig
+    sh: echo $NUV_TMP/kubeconfig
 
 tasks:
 

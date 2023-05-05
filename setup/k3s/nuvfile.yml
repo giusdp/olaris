@@ -17,6 +17,9 @@
 
 version: '3'
 
+vars:
+  CERTMANAGER: "https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.yaml"
+
 env:
   KUBECONFIG: 
     sh: |- 
@@ -31,13 +34,8 @@ tasks:
 
   get-cert-manager:
     cmds:
-    - curl -L https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.yaml >cert-manager.yaml
+    - curl -L "{{.CERTMANAGER}}" >cert-manager.yaml
 
-  prepare:
-    silent: true
-    desc: prepare
-    cmds:
-    
 
   install:
     silent: true

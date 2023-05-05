@@ -2,38 +2,26 @@ Section:
   nuv setup 
 
 Usage:
-  setup configure [<apihost>] [--tls=<email>]
-  setup (enable|disable) [--all] [--redis] [--mongo] [--minio] [--cron] [--static]
+  setup config
+  setup cluster [<context>]  [--uninstall]
   setup devcluster [--uninstall]
-  setup cluster [<context>|--local]  [--uninstall]
   setup server <server> [<user>] [--uninstall]
-  setup status
-  setup (--devcluster|--context=<context> [--apihost=<apihost>]) 
 
 Commands:
-  setup configure     configure Nuvolaris contact
-  setup apihost       configure the Nuvolaris apihost if known
-  setup enable        enable Nuvolaris services to install
-  setup disable       disable Nuvolaris services to install
+  setup config        configuration subcommands
+  setup cluster       deploy Nuvolaris in the Kubernetes cluster using the <context>, default the current
   setup devcluster    deploy Nuvolaris in a devcluster created locally
                       you need Docker Desktop available with at least 6G of memory assigned
-  setup cluster       deploy Nuvolaris in the Kubernetes cluster using the <context>, default the current
   setup server        create a Kubernetes in server <server> and deploy Nuvolaris
-                      the server must be accessible with ssh using the <user>, default root
+                      the server must be accessible with ssh using the <user> with sudo power, default root
   
-Subsections:  
+Subcommands:
   nuvolaris           nuvolaris subcommands
   kubernetes          kubernetes subcommands
   docker              docker subcommands
   k3s                 k3s subcommands
+  eks                 k3s subcommands
 
 Options:
-  --uninstall   execute an uninstall istead of an installation 
-  --all         select all services
-  --redis       select redis
-  --mongo       select mongo
-  --minio       select minio
-  --cron        select cron
-  --static      select static
-  --devcluster   (legacy) install a local development cluster in docker desktop
+  --uninstall   execute an uninstall instead of an installation 
  

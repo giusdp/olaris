@@ -3,10 +3,11 @@
   "config": {
     "nuvolaris": {
       "apihost": "auto",
-      "email": "ask",
+      "tlsemail": "none",
+      "tls": false,
       "redis": false,
       "minio": false,
-      "mongodb": false,
+      "mongo": false,
       "cron": false,
       "statics": false
     },
