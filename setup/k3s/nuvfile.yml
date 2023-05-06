@@ -18,6 +18,10 @@
 version: '3'
 
 vars:
+
+  D: ""
+  RUN: '{{if eq .D ""}}{{else}}echo{{end}}'
+  CAT: '{{if eq .D ""}}true{{else}}cat{{end}}'
   CERTMANAGER: "https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.yaml"
 
 env:
@@ -25,10 +29,8 @@ env:
     sh: |- 
         if test -e "$NUV_TMP/kubeconfig"
         then echo "$NUV_TMP/kubeconfig"
-        else echo ~/kube/config
+        else echo ~/.kube/config
         fi
-  SERVER: "{{or .SERVER  \"localhost\"}}"
-  USERNAME: "{{or .USERNAME \"root\"}}"
 
 tasks:
 
@@ -36,19 +38,21 @@ tasks:
     cmds:
     - curl -L "{{.CERTMANAGER}}" >cert-manager.yaml
 
-
   install:
-    silent: true
-    desc: install k3s with ssh in SERVER=<server> using USERNAME=<user> with sudo
+    silent: false
+    #desc: install k3s with ssh in SERVER=<server> using USERNAME=<user> with sudo
     cmds:
+      - test -n "{{.SERVER}}" || die "use SERVER="
+      - test -n "{{.USERNAME}}" || die "use USERNAME="
       - >
         k3sup install
-        --host="$SERVER" --user="$USERNAME"
+        --host="{{.SERVER}}" --user="{{.USERNAME}}"
         --local-path=$NUV_TMP/kubeconfig
+      - config SERVER_HOST="{{.SERVER}}" SERVER_USERNAME="{{.USERNAME}}"
   
   cert-manager:
     silent: true
-    desc: install cert-manager
+    #desc: install cert-manager
     cmds:
       - kubectl --kubeconfig $NUV_TMP/kubeconfig apply -f cert-manager.yaml
 
@@ -56,36 +60,38 @@ tasks:
     silent: true
     desc: create a k3s with ssh in SERVER=<server> using USERNAME=<user> with sudo
     cmds:
-    - task: configure
     - task: install
     - task: cert-manager
   
-  status:
-    silent: true
-    cmds:
-    - kubectl get nodes
-
   delete:
+    silent: true
     desc: uninstall with ssh in SERVER=<server> using USER=<user> with sudo
     cmds:
-    - ssh -o StrictHostKeyChecking=no "$USERNAME@$SERVER" sudo /usr/local/bin/k3s-uninstall.sh
+    - test -n "{{.SERVER}}" || die "please use SERVER="
+    - test -n "{{.USERNAME}}" || die "please use USERNAME="
+    - ssh -o StrictHostKeyChecking=no "{{.USERNAME}}@{{.SERVER}}" sudo /usr/local/bin/k3s-uninstall.sh
+    - config SERVER_HOST=localhost SERVER_USERNAME=root
     - rm $NUV_TMP/kubeconfig
-    - rm _server_
-    ignore_error: true
   
-  info:
+  status:
+    desc: status of the server
     silent: true
     cmds:
-    - echo KUBECONFIG="$KUBECONFIG"
-    - echo SERVER="$SERVER"
-    - echo USERNAME="$USERNAME"
-
-  configure:
-    desc: save configuration
-    cmds:
     - |
-      cat >_server_ <<EOF 
-      SERVER={{.SERVER}}
-      USERNAME={{.USERNAME}}
-      EOF
-    - nuv setup apihost "{{.SERVER}}"
+      if test -e $NUV_TMP/kubeconfig
+      then kubectl get nodes
+      else echo "No Cluster Installed"
+      fi
+
+  info:
+    silent: true
+    desc: info on the server
+    cmds:
+    - echo KUBECONFIG="$KUBECONFIG"
+    - echo SERVER_HOST="$SERVER_HOST"
+    - echo SERVER_USERNNAME="$SERVER_USERNAME"
+
+  debug: 
+    - #env
+    - echo '{{.SERVER}}'
+
