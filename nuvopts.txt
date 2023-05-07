@@ -2,8 +2,6 @@ Welcome to Nuv, the all-mighty Nuvolaris Build Tool
 
 Usage:
   setup
-  login
 
-Note: 
- many commands have subcommands,
- just type the command to see its subcommands.
+Note: many commands have subcommands,
+type the command to see help on the subcommands.
