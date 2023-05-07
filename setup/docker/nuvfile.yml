@@ -19,7 +19,7 @@ version: '3'
 vars:
   # set this to enable RUN run and DMP of info
   D: ""
-  RUN: '{{if eq .D ""}}{{else}}echo{{end}}'
+  RUN: '{{if eq .D ""}}{{else}}echo RUN:{{end}}'
   CAT: '{{if eq .D ""}}true{{else}}cat{{end}}'
   INGRESS: "https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/kind/deploy.yaml"
 
@@ -36,7 +36,7 @@ tasks:
     desc: status of the Nuvolaris cluster in Docker
     cmds:
     - |
-      if kind get clusters | grep nuvolaris
+      if {{.RUN}} kind get clusters | grep nuvolaris
       then echo Cluster Nuvolaris up and running
       else echo Cluster Nuvolaris not found
       fi

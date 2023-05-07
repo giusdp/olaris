@@ -24,23 +24,19 @@ vars:
 
 tasks:
   
-  status:
-    silent: true
-    cmds:
-    - echo todo
-
   devcluster:
     silent: true
     cmds:
     - |
       if {{.__status}}
-      then {{.RUN}} nuv setup docker status
-      elif {{.__uninstall}}
-      then {{.RUN}} nuv setup docker delete
+      then  {{.RUN}} nuv setup docker status
+      elif  {{.__uninstall}}
+      then  {{.RUN}} nuv setup docker delete
       else
           {{.RUN}} nuv setup docker create
           {{.RUN}} nuv setup kubernetes create
-          {{.RUN}} nuv setup nuvolaris create
+          {{.RUN}} nuv setup nuvolaris login
+          config STATUS_LAST=devcluster
       fi
 
   cluster:
@@ -48,12 +44,16 @@ tasks:
     cmds:
     - |
       if {{.__status}}
-      then {{.RUN}} nuv setup kubernetes status CONTEXT={{._context_}}
-      elif {{.__uninstall}}
-      then {{.RUN}} nuv setup kubernetes delete CONTEXT={{._context_}}
+      then  {{.RUN}} nuv setup kubernetes status CONTEXT="{{._context_}}"
+      elif  {{.__uninstall}}
+      then  {{.RUN}} nuv setup kubernetes delete CONTEXT="{{._context_}}"
       else
-          {{.RUN}} nuv setup kubernetes create CONTEXT={{._context_}}
-          {{.RUN}} nuv setup nuvolaris create
+            {{.RUN}} nuv setup kubernetes create CONTEXT="{{._context_}}"
+            {{.RUN}} nuv setup nuvolaris login
+            config STATUS_LAST=cluster 
+            if test -n "{{._context_}}" 
+            then config STATUS_CONTEXT="{{._context_}}"
+            fi
       fi
 
   server:
@@ -63,11 +63,56 @@ tasks:
       if {{.__status}}
       then {{.RUN}} nuv setup k3s status SERVER="{{._server_}}" USERNAME="{{._user_}}"
       elif {{.__uninstall}}
-      then {{.RUN}} nuv setup k3s delete SERVER="{{._server_}}" USERNAME="{{._user_}}"
+      then  {{.RUN}} nuv setup k3s delete SERVER="{{._server_}}" USERNAME="{{._user_}}"
       else
           {{.RUN}} nuv setup k3s create SERVER="{{._server_}}" USERNAME="{{._user_}}"
-          {{.RUN}} nuv setup kubernetes create CONTEXT={{._context_}}
-          {{.RUN}} nuv setup nuvolaris create
+          {{.RUN}} nuv setup kubernetes create
+          {{.RUN}} nuv setup nuvolaris login
+          config STATUS_LAST=server STATUS_SERVER="{{._server_}}"
+          if test -n "{{._user_}}"
+          then config STATUS_USERNAME="{{._user_}}"
+          fi   
       fi
 
+  status:
+    silent: true
+    cmds: 
+      - |
+        case "$STATUS_LAST" in 
+        (devcluster) {{.RUN}} nuv setup devcluster --status ;;
+        (cluster)    {{.RUN}} nuv setup cluster "$STATUS_CONTEXT" --status ;;
+        (server)     {{.RUN}} nuv setup server "$STATUS_SERVER" "$STATUS_USERNAME" --status ;; 
+        (*) echo nothing installed yet
+        esac
 
+  uninstall:
+    silent: true
+    cmds: 
+      - |
+        case "$STATUS_LAST" in 
+        (devcluster) 
+                    {{.RUN}} nuv setup devcluster --uninstall
+                    config -r STATUS_LAST
+        ;;
+        (cluster)   
+                    if test -n "$STATUS_CONTEXT" 
+                    then 
+                        {{.RUN}} nuv setup cluster "$STATUS_CONTEXT" --uninstall
+                        config -r STATUS_CONTEXT
+                    else
+                        {{.RUN}} nuv setup cluster --uninstall
+                    fi
+                    config -r STATUS_LAST
+        ;;
+        (server)    
+                    if test -z "$STATUS_USERNAME"
+                    then 
+                          {{.RUN}} nuv setup server "$STATUS_SERVER" --uninstall
+                    else
+                          {{.RUN}} nuv setup server "$STATUS_SERVER" "$STATUS_USERNAME" --uninstall
+                          config -r STATUS_USERNAME
+                    fi
+                    config -r STATUS_LAST STATUS_SERVER 
+        ;; 
+        (*) echo nothing installed yet
+        esac

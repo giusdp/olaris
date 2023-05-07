@@ -18,9 +18,8 @@
 version: '3'
 
 vars:
-
   D: ""
-  RUN: '{{if eq .D ""}}{{else}}echo{{end}}'
+  RUN: '{{if eq .D ""}}{{else}}echo RUN:{{end}}'
   CAT: '{{if eq .D ""}}true{{else}}cat{{end}}'
   CERTMANAGER: "https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.yaml"
 
@@ -39,26 +38,27 @@ tasks:
     - curl -L "{{.CERTMANAGER}}" >cert-manager.yaml
 
   install:
-    silent: false
+    silent: true
     #desc: install k3s with ssh in SERVER=<server> using USERNAME=<user> with sudo
     cmds:
       - test -n "{{.SERVER}}" || die "use SERVER="
-      - test -n "{{.USERNAME}}" || die "use USERNAME="
-      - if $NUVOLARIS_TLS
+      - >
+        {{.RUN}} k3sup install
+        --host="{{.SERVER}}" --user="{{.USERNAME}}"
+        --local-path=$NUV_TMP/kubeconfig
+      - |
+        if test "$NUVOLARIS_TLS" = true
         then config NUVOLARIS_APIHOST={{.SERVER}}
         else config NUVOLARIS_APIHOST=http://{{.SERVER}}
         fi
-      - >
-        k3sup install
-        --host="{{.SERVER}}" --user="{{.USERNAME}}"
-        --local-path=$NUV_TMP/kubeconfig
-      - config SERVER_HOST="{{.SERVER}}" SERVER_USERNAME="{{.USERNAME}}"
+    vars:
+      USERNAME: '{{.USERNAME | default "root"}}'
   
   cert-manager:
     silent: true
     #desc: install cert-manager
     cmds:
-      - kubectl --kubeconfig $NUV_TMP/kubeconfig apply -f cert-manager.yaml
+      - "{{.RUN}} kubectl --kubeconfig $NUV_TMP/kubeconfig apply -f cert-manager.yaml"
 
   create:
     silent: true
@@ -72,10 +72,11 @@ tasks:
     desc: uninstall with ssh in SERVER=<server> using USER=<user> with sudo
     cmds:
     - test -n "{{.SERVER}}" || die "please use SERVER="
-    - test -n "{{.USERNAME}}" || die "please use USERNAME="
-    - ssh -o StrictHostKeyChecking=no "{{.USERNAME}}@{{.SERVER}}" sudo /usr/local/bin/k3s-uninstall.sh
-    - config SERVER_HOST=localhost SERVER_USERNAME=root
+    - "{{.RUN}} ssh -o StrictHostKeyChecking=no '{{.USERNAME}}@{{.SERVER}}' sudo /usr/local/bin/k3s-uninstall.sh"
+    - config -r NUVOLARIS_APIHOST 2>/dev/null
     - rm $NUV_TMP/kubeconfig
+    vars:
+      USERNAME: '{{.USERNAME | default "root"}}'
   
   status:
     desc: status of the server
@@ -83,7 +84,7 @@ tasks:
     cmds:
     - |
       if test -e $NUV_TMP/kubeconfig
-      then kubectl get nodes
+      then {{.RUN}} kubectl get nodes
       else echo "No Cluster Installed"
       fi
 
@@ -94,8 +95,3 @@ tasks:
     - echo KUBECONFIG="$KUBECONFIG"
     - echo SERVER_HOST="$SERVER_HOST"
     - echo SERVER_USERNNAME="$SERVER_USERNAME"
-
-  debug: 
-    - #env
-    - echo '{{.SERVER}}'
-
