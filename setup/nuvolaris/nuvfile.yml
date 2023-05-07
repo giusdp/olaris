@@ -64,12 +64,13 @@ tasks:
       retry -t 100 -m 600 nuv -wsk {{.ETC}} --apihost "$APIHOST" --auth "$AUTH" namespace list
       {{.RUN}} wsk  property set --apihost "$APIHOST"  --auth "$AUTH"
 
-  login:
+  create:
     silent: true
     desc: configuring nuvolaris
     cmds:
     - task: wait
     - task: config
+    - task: hello
 
   hello:
     silent: true
@@ -84,3 +85,6 @@ tasks:
     desc: showing the configuration status
     cmds:
     - wsk {{.ETC}} property get --apihost
+
+  delete:
+    desc: no-op delete command

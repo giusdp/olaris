@@ -3,25 +3,27 @@ Section:
 
 Usage:
   setup config
-  setup cluster [<context>]  [--uninstall]
-  setup devcluster [--uninstall]
-  setup server <server> [<user>] [--uninstall]
-
+  setup devcluster [--uninstall|--status] 
+  setup cluster [<context>] [--uninstall|--status]
+  setup server <server> [<user>] [--uninstall|--status]
+  
 Commands:
-  setup config        configuration subcommands
   setup cluster       deploy Nuvolaris in the Kubernetes cluster using the <context>, default the current
   setup devcluster    deploy Nuvolaris in a devcluster created locally
                       you need Docker Desktop available with at least 6G of memory assigned
   setup server        create a Kubernetes in server <server> and deploy Nuvolaris
                       the server must be accessible with ssh using the <user> with sudo power, default root
-  
+
+Options:
+  --uninstall         execute an uninstall instead of an installation 
+  --status            show the status instead of an installation 
+
 Subcommands:
+  config              configuration subcommands
   nuvolaris           nuvolaris subcommands
   kubernetes          kubernetes subcommands
   docker              docker subcommands
   k3s                 k3s subcommands
   eks                 k3s subcommands
 
-Options:
-  --uninstall   execute an uninstall instead of an installation 
  

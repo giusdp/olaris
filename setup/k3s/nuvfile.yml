@@ -44,6 +44,10 @@ tasks:
     cmds:
       - test -n "{{.SERVER}}" || die "use SERVER="
       - test -n "{{.USERNAME}}" || die "use USERNAME="
+      - if $NUVOLARIS_TLS
+        then config NUVOLARIS_APIHOST={{.SERVER}}
+        else config NUVOLARIS_APIHOST=http://{{.SERVER}}
+        fi
       - >
         k3sup install
         --host="{{.SERVER}}" --user="{{.USERNAME}}"

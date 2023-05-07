@@ -105,6 +105,21 @@ tasks:
       else echo "generic"
       fi
 
+
+  context:
+    desc: select the context to use
+    silent: true
+    cmds: 
+    - |
+      if test -n "{{.CONTEXT}}"
+      then  if {{.RUN}} kubectl config use-context "{{.CONTEXT}}"
+            then {{.RUN}} kubectl config get-contexts
+            else false
+            fi
+      else echo Using current context
+          {{.RUN}} kubectl config get-contexts
+      fi
+
   prepare:
     #desc: prepare the environment
     silent: true

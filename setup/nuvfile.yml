@@ -16,137 +16,58 @@
 # under the License.
 
 version: '3'
+
+vars:
+  D: ""
+  RUN: '{{if eq .D ""}}{{else}}echo{{end}}'
+  CAT: '{{if eq .D ""}}true{{else}}cat{{end}}'
+
 tasks:
   
-  default:
-    silent: true
-    cmds:
-    - |
-      if {{.__devcluster}} 
-      then echo nuv setup devcluster
-      elif test -n "{{.__context}}"
-      then 
-          if test -n "{{.__apihost}}"
-          then nuv setup configure "{{.__apihost}}"
-          fi
-          echo nuv setup cluster {{.__context}}
-      fi
-
-  noconfigure:
-    silent: true
-    cmds:
-    - |
-      if test -n "{{._apihost_}}"
-      then config NUVOLARIS_APIHOST="{{._apihost_}}"
-      else config CONFIG_APIHOST="auto"
-      fi
-      if test -n "{{._tls_}}"
-      then config NUVOLARIS_TLSEMAIL="{{._email_}}" NUVOLARIS_TLS=true
-      else
-      fi
-  
-  noenable:
-    silent: true
-    cmds:
-    - |
-      if {{.__redis}} || {{.__all}}
-      then config NUVOLARIS_REDIS=true
-      fi
-      if {{.__mongo}} || {{.__all}}
-      then config NUVOLARIS_MONGO=true
-      fi
-      if {{.__minio}} || {{.__all}}
-      then config NUVOLARIS_MINIO=true
-      fi
-      if {{.__cron}} || {{.__all}}
-      then config NUVOLARIS_CRON=true
-      fi
-      if {{.__static}} || {{.__all}}
-      then config NUVOLARIS_STATIC=true
-      fi
-    - task: status
-
-  nodisable:
-    silent: true
-    cmds:
-    - |
-      if {{.__redis}} || {{.__all}}
-      then config NUVOLARIS_REDIS=false
-      fi
-      if {{.__mongo}} || {{.__all}}
-      then config NUVOLARIS_MONGO=false
-      fi
-      if {{.__minio}} || {{.__all}}
-      then config NUVOLARIS_MINIO=false
-      fi
-      if {{.__cron}} || {{.__all}}
-      then config NUVOLARIS_CRON=false
-      fi
-      if {{.__cron}} || {{.__all}}
-      then config NUVOLARIS_STATIC=false
-      fi
-    - task: status
-
   status:
     silent: true
     cmds:
-    - | 
-      echo "*** Configuration ***"
-      echo "   ApiHost: $CONFIG_APIHOST"
-      echo "     Email: $CONFIG_EMAIL"
-      echo "       Tls: $ENABLE_TLS"
-      echo "     Redis: $ENABLE_REDIS"
-      echo "     Mongo: $ENABLE_MONGO"
-      echo "     Minio: $ENABLE_MINIO"
-      echo "      Cron: $ENABLE_CRON"
-      echo "    Static: $ENABLE_STATIC"
- 
-  use-context:
-    silent: true
-    cmds: 
-    - |
-      if test -n "{{._context_}}"
-      then  if kubectl config use-context "{{._context_}}"
-            then kubectl config get-contexts
-            else false
-            fi
-      fi
-      kubectl config get-contexts
+    - echo todo
 
   devcluster:
     silent: true
     cmds:
     - |
-        nuv configure "no-reply@example.com"
-        nuv setup docker create
-        nuv setup kubernetes create
+      if {{.__status}}
+      then {{.RUN}} nuv setup docker status
+      elif {{.__uninstall}}
+      then {{.RUN}} nuv setup docker delete
+      else
+          {{.RUN}} nuv setup docker create
+          {{.RUN}} nuv setup kubernetes create
+          {{.RUN}} nuv setup nuvolaris create
+      fi
 
   cluster:
     silent: true
     cmds:
-    - task: use-context
-    - nuv setup kubernetes create
-    - nuv setup nuvolaris login
+    - |
+      if {{.__status}}
+      then {{.RUN}} nuv setup kubernetes status CONTEXT={{._context_}}
+      elif {{.__uninstall}}
+      then {{.RUN}} nuv setup kubernetes delete CONTEXT={{._context_}}
+      else
+          {{.RUN}} nuv setup kubernetes create CONTEXT={{._context_}}
+          {{.RUN}} nuv setup nuvolaris create
+      fi
 
   server:
     silent: true
     cmds:
-    - nuv setup apihost {{._server_}}
-    - nuv setup k3s create SERVER="{{._server_}}" USERNAME="{{._user_}}"
-    - nuv setup kubernetes create
-    - nuv setup nuvolaris login
-
-
-  delete:
-    silent: false
-    cmds:
-    - task: use-context
     - |
-      if {{.__local}}
-      then nuv setup docker delete
-      elif {{.__server}}
-      then nuv setup k3s delete
-      else nuv setup kubernetes delete
+      if {{.__status}}
+      then {{.RUN}} nuv setup k3s status SERVER="{{._server_}}" USERNAME="{{._user_}}"
+      elif {{.__uninstall}}
+      then {{.RUN}} nuv setup k3s delete SERVER="{{._server_}}" USERNAME="{{._user_}}"
+      else
+          {{.RUN}} nuv setup k3s create SERVER="{{._server_}}" USERNAME="{{._user_}}"
+          {{.RUN}} nuv setup kubernetes create CONTEXT={{._context_}}
+          {{.RUN}} nuv setup nuvolaris create
       fi
 
 
