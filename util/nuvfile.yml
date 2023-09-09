@@ -76,5 +76,9 @@ tasks:
     cmds:
       - wsk activation poll
 
-    
+  notify:
+    desc: install notifications
+
+  1password:
+    desc: 1password support utils
     
